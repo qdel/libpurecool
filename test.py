@@ -32,7 +32,7 @@ def wait():
 dyson_account = DysonAccount(USER, PASS, LANG)
 while dyson_account.login() == False:
     if dyson_account.wait_2fa_start and \
-       dyson_account.authenticate():
+       dyson_account.authent():
         print('authent ok!')
     if dyson_account.wait_2fa_verify and \
        dyson_account.verify(input("Please input token received by mail:")):
