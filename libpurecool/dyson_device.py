@@ -68,15 +68,19 @@ class DysonDevice:
     def on_connect(client, userdata, flags, return_code):
         # pylint: disable=unused-argument
         """Set function callback when connected."""
+        #print(client)
+        #print(userdata)
+        #print(flags)
+        #print(return_code)
         if return_code == 0:
             _LOGGER.debug("Connected with result code: %s", return_code)
             client.subscribe(userdata.status_topic)
 
-            userdata.connection_callback(True)
+            userdata.connection_callback((True, return_code))
         else:
             _LOGGER.error("Connection error: %s",
                           MQTT_RETURN_CODES[return_code])
-            userdata.connection_callback(False)
+            userdata.connection_callback((False, return_code))
 
     def __init__(self, json_body):
         """Create a new Dyson device.
@@ -96,6 +100,7 @@ class DysonDevice:
         self._product_type = json_body['ProductType']
         self._network_device = None
         self._connected = False
+        self._connection_error_code = None
         self._mqtt = None
         self._callback_message = []
         self._device_available = False
@@ -152,6 +157,10 @@ class DysonDevice:
     def state(self, value):
         """Set current state."""
         self._current_state = value
+
+    @property
+    def connection_error_code(self):
+        return self._connection_error_code
 
     @property
     def active(self):

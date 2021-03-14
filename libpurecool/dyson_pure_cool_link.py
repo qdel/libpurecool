@@ -14,10 +14,10 @@ import paho.mqtt.client as mqtt
 
 from .dyson_pure_state_v2 import \
     DysonEnvironmentalSensorV2State, DysonPureCoolV2State, \
-    DysonPureHotCoolV2State
+    DysonPureHumidifyCoolV2State, DysonPureHotCoolV2State
 from .dyson_device import DysonDevice, NetworkDevice, DEFAULT_PORT
 from .utils import printable_fields, support_heating, is_pure_cool_v2, \
-    support_heating_v2
+    support_heating_v2, is_pure_humidifycool_v2
 from .dyson_pure_state import DysonPureHotCoolState, DysonPureCoolState, \
     DysonEnvironmentalSensorState
 from .zeroconf import ServiceBrowser, Zeroconf
@@ -89,6 +89,8 @@ class DysonPureCoolLink(DysonDevice):
                 device_msg = DysonPureHotCoolState(payload)
             elif support_heating_v2(userdata.product_type):
                 device_msg = DysonPureHotCoolV2State(payload)
+            elif is_pure_humidifycool_v2(userdata.product_type):
+                device_msg = DysonPureHumidifyCoolV2State(payload)
             elif is_pure_cool_v2(userdata.product_type):
                 device_msg = DysonPureCoolV2State(payload)
             else:
@@ -160,7 +162,7 @@ class DysonPureCoolLink(DysonDevice):
         self._mqtt.connect(self._network_device.address,
                            self._network_device.port)
         self._mqtt.loop_start()
-        self._connected = self._connection_queue.get(timeout=10)
+        self._connected, self._connection_error_code = self._connection_queue.get(timeout=10)
         if self._connected:
             self.request_current_state()
             # Start Environmental thread
