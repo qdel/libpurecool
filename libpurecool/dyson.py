@@ -26,7 +26,7 @@ _LOGGER = logging.getLogger(__name__)
 
 DYSON_API_URL = "appapi.cp.dyson.com"
 DYSON_API_URL_CN = "appapi.cp.dyson.cn"
-DYSON_API_USER_AGENT = "Dalvik/2.1.0 (Linux; U; Android 8.1.0; Google Build/OPM6.171019.030.E1)"
+DYSON_API_USER_AGENT = "android client"
 
 import json
 import appdirs
@@ -77,12 +77,16 @@ class DysonAccount:
                 self._cache = json.load(jf)
 
     def pre_login(self):
+        forceQry = False
+        _LOGGER.info('pre_login')
         if "pre_login_next_run" in self._cache:
             if datetime.datetime.now() > datetime.datetime.fromisoformat(self._cache["pre_login_next_run"]):
-                del self._cache['pre_login_next_run']
-                del self._cache['pre_login']
-                self.writeCache()
-        if "pre_login" not in self._cache:
+                _LOGGER.info('we should pre_login')
+                #del self._cache['pre_login_next_run']
+                #del self._cache['pre_login']
+                #self.writeCache()
+                forceQry = True
+        if "pre_login" not in self._cache or forceQry:
             pre_login = requests.post(
                 "https://{0}/v3/userregistration/email/userstatus?country={1}".format(
                     self._dyson_api_url, self._country),
@@ -100,10 +104,12 @@ class DysonAccount:
         else:
             _LOGGER.info('pre_login using cache')
         if "pre_login" in self._cache and 'accountStatus' in self._cache['pre_login'] and self._cache['pre_login']['accountStatus'] == 'ACTIVE':
+            _LOGGER.info('pre_login data are available in cache, we are connected...')
             return True
         return False
 
     def authenticate(self):
+        _LOGGER.info('authenticate')
         if "authenticate" not in self._cache:
             uri = "https://{0}/v3/userregistration/email/auth".format(self._dyson_api_url)
             login = requests.post(
