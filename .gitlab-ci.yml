@@ -1,6 +1,6 @@
-image: python:latest
+image: ${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX}/python:latest
 
-run:
+deploy:
   script:
     - pip install build twine
     - python -m build
